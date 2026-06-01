@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo Daily & Weekly</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <div>
+        <p class="app-eyebrow">Productive Day</p>
+        <h1>Todo Planner</h1>
+      </div>
+      <div class="date-header">
+        <button type="button" id="prev-day-button" class="icon-button" aria-label="이전 날짜">‹</button>
+        <p id="selected-date-label" class="selected-date-text"></p>
+        <button type="button" id="next-day-button" class="icon-button" aria-label="다음 날짜">›</button>
+      </div>
+    </header>
+
+    <section class="week-section" aria-label="주간 뷰">
+      <div class="week-nav">
+        <button type="button" id="prev-week-button" class="text-button">이전 주</button>
+        <button type="button" id="next-week-button" class="text-button">다음 주</button>
+      </div>
+      <div id="week-view" class="week-grid"></div>
+    </section>
+
+    <section class="input-section" aria-label="Todo 추가">
+      <label for="todo-input" class="sr-only">할 일 입력</label>
+      <div class="input-row">
+        <input id="todo-input" type="text" placeholder="할 일을 입력하세요" autocomplete="off">
+        <button type="button" id="add-todo-button" class="primary-button">추가</button>
+      </div>
+      <p id="input-message" class="input-message" role="alert" aria-live="polite"></p>
+    </section>
+
+    <section class="filter-section" aria-label="상태 필터">
+      <div class="filter-tabs" role="tablist">
+        <button type="button" class="filter-tab is-active" data-filter="all" role="tab" aria-selected="true">전체</button>
+        <button type="button" class="filter-tab" data-filter="active" role="tab" aria-selected="false">진행 중</button>
+        <button type="button" class="filter-tab" data-filter="completed" role="tab" aria-selected="false">완료</button>
+      </div>
+    </section>
+
+    <section class="list-section" aria-label="Todo 목록">
+      <ul id="todo-list" class="todo-list"></ul>
+      <p id="empty-state" class="empty-state">해당 조건의 Todo가 없습니다.</p>
+    </section>
+  </main>
+</body>
+</html>
