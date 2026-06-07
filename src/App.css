@@ -10,8 +10,9 @@
 
 .app-header {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
   text-align: left;
 }
 
@@ -29,6 +30,47 @@
   color: var(--text-main);
   font-size: 32px;
   line-height: 1.15;
+}
+
+.date-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon-button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text-main);
+  cursor: pointer;
+  font: inherit;
+  font-size: 24px;
+  line-height: 1;
+  transition:
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.icon-button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.icon-button:active {
+  transform: translateY(1px);
+}
+
+.selected-date-text {
+  min-width: 190px;
+  margin: 0;
+  color: var(--primary);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
 }
 
 .input-section {
@@ -250,6 +292,19 @@
 
   .app-header h1 {
     font-size: 28px;
+  }
+
+  .app-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .date-header {
+    justify-content: space-between;
+  }
+
+  .selected-date-text {
+    min-width: 0;
   }
 
   .input-row,

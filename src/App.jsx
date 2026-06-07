@@ -13,12 +13,70 @@ const FILTER_OPTIONS = [
   { label: '완료', value: FILTER_TYPES.COMPLETED },
 ]
 
+function formatDateKey(dateValue) {
+  const dateObject =
+    dateValue instanceof Date ? new Date(dateValue) : parseDateKey(dateValue)
+  const year = dateObject.getFullYear()
+  const month = String(dateObject.getMonth() + 1).padStart(2, '0')
+  const day = String(dateObject.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+function parseDateKey(dateKey) {
+  const [year, month, day] = dateKey.split('-').map(Number)
+
+  return new Date(year, month - 1, day)
+}
+
+function addDays(dateKey, offsetDays) {
+  const movedDate = parseDateKey(dateKey)
+  movedDate.setDate(movedDate.getDate() + offsetDays)
+
+  return formatDateKey(movedDate)
+}
+
+function formatReadableDate(dateKey) {
+  const dateObject = parseDateKey(dateKey)
+
+  return dateObject.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'short',
+  })
+}
+
 function createTodoId() {
   if (window.crypto && typeof window.crypto.randomUUID === 'function') {
     return window.crypto.randomUUID()
   }
 
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
+function getFilteredTodos(todos, currentFilter) {
+  if (currentFilter === FILTER_TYPES.ACTIVE) {
+    return todos.filter((todo) => !todo.isCompleted)
+  }
+
+  if (currentFilter === FILTER_TYPES.COMPLETED) {
+    return todos.filter((todo) => todo.isCompleted)
+  }
+
+  return todos
+}
+
+function getEmptyStateMessage(todos, todosForSelectedDate) {
+  if (todos.length === 0) {
+    return '등록된 Todo가 없습니다.'
+  }
+
+  if (todosForSelectedDate.length === 0) {
+    return '선택한 날짜의 Todo가 없습니다.'
+  }
+
+  return '해당 조건의 Todo가 없습니다.'
 }
 
 function App() {
@@ -28,23 +86,21 @@ function App() {
   const [editingTodoId, setEditingTodoId] = useState(null)
   const [editingText, setEditingText] = useState('')
   const [currentFilter, setCurrentFilter] = useState(FILTER_TYPES.ALL)
+  const [selectedDate, setSelectedDate] = useState(formatDateKey(new Date()))
 
-  const visibleTodos = todos.filter((todo) => {
-    if (currentFilter === FILTER_TYPES.ACTIVE) {
-      return !todo.isCompleted
-    }
-
-    if (currentFilter === FILTER_TYPES.COMPLETED) {
-      return todo.isCompleted
-    }
-
-    return true
+  const todosForSelectedDate = todos.filter((todo) => {
+    return todo.date === selectedDate
   })
+  const visibleTodos = getFilteredTodos(todosForSelectedDate, currentFilter)
+  const emptyStateMessage = getEmptyStateMessage(todos, todosForSelectedDate)
+  const selectedDateLabel = formatReadableDate(selectedDate)
 
-  const emptyStateMessage =
-    todos.length === 0
-      ? '등록된 Todo가 없습니다.'
-      : '해당 조건의 Todo가 없습니다.'
+  const handleMoveDate = (offsetDays) => {
+    setSelectedDate((currentDate) => addDays(currentDate, offsetDays))
+    setEditingTodoId(null)
+    setEditingText('')
+    setMessage('')
+  }
 
   const handleAddTodo = (event) => {
     event.preventDefault()
@@ -60,6 +116,7 @@ function App() {
       id: createTodoId(),
       text: normalizedText,
       isCompleted: false,
+      date: selectedDate,
     }
 
     setTodos((currentTodos) => [...currentTodos, newTodo])
@@ -144,8 +201,29 @@ function App() {
   return (
     <main className="app-shell">
       <header className="app-header">
-        <p className="app-eyebrow">React Migration</p>
-        <h1>Todo Planner</h1>
+        <div>
+          <p className="app-eyebrow">React Migration</p>
+          <h1>Todo Planner</h1>
+        </div>
+        <div className="date-header">
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="이전 날짜"
+            onClick={() => handleMoveDate(-1)}
+          >
+            ‹
+          </button>
+          <p className="selected-date-text">{selectedDateLabel}</p>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="다음 날짜"
+            onClick={() => handleMoveDate(1)}
+          >
+            ›
+          </button>
+        </div>
       </header>
 
       <section className="input-section" aria-label="Todo 추가">
