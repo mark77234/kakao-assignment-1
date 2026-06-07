@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 
-const STORAGE_KEY = 'todoApp.todos'
+const TODOS_STORAGE_KEY = 'todoApp.todos'
+const SELECTED_DATE_STORAGE_KEY = 'todoApp.selectedDate'
+const WEEK_START_STORAGE_KEY = 'todoApp.weekStartDate'
 
 const FILTER_TYPES = {
   ALL: 'all',
@@ -14,6 +16,8 @@ const FILTER_OPTIONS = [
   { label: '진행 중', value: FILTER_TYPES.ACTIVE },
   { label: '완료', value: FILTER_TYPES.COMPLETED },
 ]
+
+const DAY_NAMES = ['월', '화', '수', '목', '금', '토', '일']
 
 function formatDateKey(dateValue) {
   const dateObject =
@@ -38,6 +42,31 @@ function addDays(dateKey, offsetDays) {
   return formatDateKey(movedDate)
 }
 
+function getWeekStart(dateKey) {
+  const baseDate = parseDateKey(dateKey)
+  const day = baseDate.getDay()
+  const diffToMonday = day === 0 ? -6 : 1 - day
+  baseDate.setDate(baseDate.getDate() + diffToMonday)
+
+  return formatDateKey(baseDate)
+}
+
+function getWeekRange(weekStartDate) {
+  return Array.from({ length: 7 }, (_, index) => addDays(weekStartDate, index))
+}
+
+function isToday(dateKey) {
+  return dateKey === formatDateKey(new Date())
+}
+
+function isValidDateKey(dateKey) {
+  if (typeof dateKey !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
+    return false
+  }
+
+  return formatDateKey(parseDateKey(dateKey)) === dateKey
+}
+
 function formatReadableDate(dateKey) {
   const dateObject = parseDateKey(dateKey)
 
@@ -58,11 +87,11 @@ function createTodoId() {
 }
 
 function saveTodos(todos) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
+  localStorage.setItem(TODOS_STORAGE_KEY, JSON.stringify(todos))
 }
 
 function loadTodos() {
-  const storedValue = localStorage.getItem(STORAGE_KEY)
+  const storedValue = localStorage.getItem(TODOS_STORAGE_KEY)
   if (!storedValue) {
     return []
   }
@@ -99,6 +128,34 @@ function normalizeTodos(rawTodos) {
     })
 }
 
+function saveDate(storageKey, dateKey) {
+  localStorage.setItem(storageKey, dateKey)
+}
+
+function loadDate(storageKey, fallbackDate) {
+  const storedDate = localStorage.getItem(storageKey)
+
+  return isValidDateKey(storedDate) ? storedDate : fallbackDate
+}
+
+function loadSelectedDate() {
+  return loadDate(SELECTED_DATE_STORAGE_KEY, formatDateKey(new Date()))
+}
+
+function loadWeekStartDate(selectedDate) {
+  const fallbackWeekStartDate = getWeekStart(selectedDate)
+  const storedWeekStartDate = loadDate(
+    WEEK_START_STORAGE_KEY,
+    fallbackWeekStartDate,
+  )
+
+  if (getWeekStart(selectedDate) !== storedWeekStartDate) {
+    return fallbackWeekStartDate
+  }
+
+  return storedWeekStartDate
+}
+
 function getFilteredTodos(todos, currentFilter) {
   if (currentFilter === FILTER_TYPES.ACTIVE) {
     return todos.filter((todo) => !todo.isCompleted)
@@ -123,6 +180,10 @@ function getEmptyStateMessage(todos, todosForSelectedDate) {
   return '해당 조건의 Todo가 없습니다.'
 }
 
+function getTodoCountByDate(todos, dateKey) {
+  return todos.filter((todo) => todo.date === dateKey).length
+}
+
 function App() {
   const [todos, setTodos] = useState(loadTodos)
   const [todoInput, setTodoInput] = useState('')
@@ -130,7 +191,10 @@ function App() {
   const [editingTodoId, setEditingTodoId] = useState(null)
   const [editingText, setEditingText] = useState('')
   const [currentFilter, setCurrentFilter] = useState(FILTER_TYPES.ALL)
-  const [selectedDate, setSelectedDate] = useState(formatDateKey(new Date()))
+  const [selectedDate, setSelectedDate] = useState(loadSelectedDate)
+  const [weekStartDate, setWeekStartDate] = useState(() =>
+    loadWeekStartDate(selectedDate),
+  )
 
   const todosForSelectedDate = todos.filter((todo) => {
     return todo.date === selectedDate
@@ -138,16 +202,46 @@ function App() {
   const visibleTodos = getFilteredTodos(todosForSelectedDate, currentFilter)
   const emptyStateMessage = getEmptyStateMessage(todos, todosForSelectedDate)
   const selectedDateLabel = formatReadableDate(selectedDate)
+  const weekDates = getWeekRange(weekStartDate)
 
   useEffect(() => {
     saveTodos(todos)
   }, [todos])
 
-  const handleMoveDate = (offsetDays) => {
-    setSelectedDate((currentDate) => addDays(currentDate, offsetDays))
+  useEffect(() => {
+    saveDate(SELECTED_DATE_STORAGE_KEY, selectedDate)
+  }, [selectedDate])
+
+  useEffect(() => {
+    saveDate(WEEK_START_STORAGE_KEY, weekStartDate)
+  }, [weekStartDate])
+
+  const resetTransientTodoState = () => {
     setEditingTodoId(null)
     setEditingText('')
     setMessage('')
+  }
+
+  const selectDate = (dateKey) => {
+    setSelectedDate(dateKey)
+    setWeekStartDate(getWeekStart(dateKey))
+    resetTransientTodoState()
+  }
+
+  const handleMoveDate = (offsetDays) => {
+    const nextDate = addDays(selectedDate, offsetDays)
+
+    selectDate(nextDate)
+  }
+
+  const handleMoveWeek = (offsetWeeks) => {
+    const offsetDays = offsetWeeks * 7
+
+    setSelectedDate((currentDate) => addDays(currentDate, offsetDays))
+    setWeekStartDate((currentWeekStartDate) =>
+      addDays(currentWeekStartDate, offsetDays),
+    )
+    resetTransientTodoState()
   }
 
   const handleAddTodo = (event) => {
@@ -273,6 +367,53 @@ function App() {
           </button>
         </div>
       </header>
+
+      <section className="week-section" aria-label="주간 뷰">
+        <div className="week-nav">
+          <button
+            type="button"
+            className="text-button"
+            onClick={() => handleMoveWeek(-1)}
+          >
+            이전 주
+          </button>
+          <button
+            type="button"
+            className="text-button"
+            onClick={() => handleMoveWeek(1)}
+          >
+            다음 주
+          </button>
+        </div>
+        <div className="week-grid">
+          {weekDates.map((dateKey, index) => {
+            const dateObject = parseDateKey(dateKey)
+            const isSelectedDate = selectedDate === dateKey
+            const isTodayDate = isToday(dateKey)
+            const todoCount = getTodoCountByDate(todos, dateKey)
+
+            return (
+              <button
+                key={dateKey}
+                type="button"
+                className={`week-day ${isSelectedDate ? 'is-selected' : ''} ${
+                  isTodayDate ? 'is-today' : ''
+                }`}
+                data-date={dateKey}
+                aria-pressed={isSelectedDate}
+                onClick={() => selectDate(dateKey)}
+              >
+                <span className="week-day-name">{DAY_NAMES[index]}</span>
+                <span className="week-day-date">
+                  {String(dateObject.getMonth() + 1).padStart(2, '0')}/
+                  {String(dateObject.getDate()).padStart(2, '0')}
+                </span>
+                <span className="week-day-count">{todoCount}개</span>
+              </button>
+            )
+          })}
+        </div>
+      </section>
 
       <section className="input-section" aria-label="Todo 추가">
         <form className="input-row" onSubmit={handleAddTodo}>

@@ -143,6 +143,107 @@
   transform: translateY(1px);
 }
 
+.week-section {
+  margin-top: 22px;
+  padding: 16px;
+  border: 1px solid #dce7f5;
+  border-radius: 8px;
+  background: #f8fbff;
+}
+
+.week-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.text-button {
+  min-height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text-main);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 0 12px;
+  transition:
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.text-button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.text-button:active {
+  transform: translateY(1px);
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(74px, 1fr));
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.week-day {
+  min-height: 88px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text-main);
+  cursor: pointer;
+  padding: 10px 6px;
+  text-align: center;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.week-day:hover {
+  border-color: var(--primary);
+}
+
+.week-day.is-selected {
+  border-color: var(--primary);
+  background: #eaf2ff;
+}
+
+.week-day.is-today {
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.week-day-name,
+.week-day-date,
+.week-day-count {
+  display: block;
+}
+
+.week-day-name {
+  color: var(--text-sub);
+  font-size: 12px;
+}
+
+.week-day-date {
+  margin-top: 5px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.week-day-count {
+  margin-top: 5px;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .filter-section {
   margin-top: 14px;
 }
@@ -315,6 +416,14 @@
 
   .primary-button {
     min-height: 44px;
+  }
+
+  .week-section {
+    padding: 14px;
+  }
+
+  .week-grid {
+    grid-template-columns: repeat(7, minmax(70px, 1fr));
   }
 
   .filter-tabs {
