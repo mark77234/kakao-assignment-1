@@ -1,6 +1,18 @@
 import { useState } from 'react'
 import './App.css'
 
+const FILTER_TYPES = {
+  ALL: 'all',
+  ACTIVE: 'active',
+  COMPLETED: 'completed',
+}
+
+const FILTER_OPTIONS = [
+  { label: '전체', value: FILTER_TYPES.ALL },
+  { label: '진행 중', value: FILTER_TYPES.ACTIVE },
+  { label: '완료', value: FILTER_TYPES.COMPLETED },
+]
+
 function createTodoId() {
   if (window.crypto && typeof window.crypto.randomUUID === 'function') {
     return window.crypto.randomUUID()
@@ -15,6 +27,24 @@ function App() {
   const [message, setMessage] = useState('')
   const [editingTodoId, setEditingTodoId] = useState(null)
   const [editingText, setEditingText] = useState('')
+  const [currentFilter, setCurrentFilter] = useState(FILTER_TYPES.ALL)
+
+  const visibleTodos = todos.filter((todo) => {
+    if (currentFilter === FILTER_TYPES.ACTIVE) {
+      return !todo.isCompleted
+    }
+
+    if (currentFilter === FILTER_TYPES.COMPLETED) {
+      return todo.isCompleted
+    }
+
+    return true
+  })
+
+  const emptyStateMessage =
+    todos.length === 0
+      ? '등록된 Todo가 없습니다.'
+      : '해당 조건의 Todo가 없습니다.'
 
   const handleAddTodo = (event) => {
     event.preventDefault()
@@ -142,12 +172,33 @@ function App() {
         </p>
       </section>
 
+      <section className="filter-section" aria-label="상태 필터">
+        <div className="filter-tabs" role="tablist">
+          {FILTER_OPTIONS.map((filterOption) => {
+            const isActive = currentFilter === filterOption.value
+
+            return (
+              <button
+                key={filterOption.value}
+                type="button"
+                className={`filter-tab ${isActive ? 'is-active' : ''}`}
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => setCurrentFilter(filterOption.value)}
+              >
+                {filterOption.label}
+              </button>
+            )
+          })}
+        </div>
+      </section>
+
       <section className="list-section" aria-label="Todo 목록">
-        {todos.length === 0 ? (
-          <p className="empty-state">등록된 Todo가 없습니다.</p>
+        {visibleTodos.length === 0 ? (
+          <p className="empty-state">{emptyStateMessage}</p>
         ) : (
           <ul className="todo-list">
-            {todos.map((todo) => (
+            {visibleTodos.map((todo) => (
               <TodoItem
                 key={todo.id}
                 todo={todo}

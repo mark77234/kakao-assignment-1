@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+week-1/app.js
+week-1/index.html
+week-1/style.css
