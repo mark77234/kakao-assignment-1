@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
+
+const STORAGE_KEY = 'todoApp.todos'
 
 const FILTER_TYPES = {
   ALL: 'all',
@@ -55,6 +57,48 @@ function createTodoId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
 
+function saveTodos(todos) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
+}
+
+function loadTodos() {
+  const storedValue = localStorage.getItem(STORAGE_KEY)
+  if (!storedValue) {
+    return []
+  }
+
+  try {
+    const parsedValue = JSON.parse(storedValue)
+
+    return normalizeTodos(parsedValue)
+  } catch {
+    return []
+  }
+}
+
+function normalizeTodos(rawTodos) {
+  if (!Array.isArray(rawTodos)) {
+    return []
+  }
+
+  return rawTodos
+    .filter((todo) => {
+      return (
+        typeof todo?.id === 'string' &&
+        typeof todo?.text === 'string' &&
+        typeof todo?.date === 'string'
+      )
+    })
+    .map((todo) => {
+      return {
+        id: todo.id,
+        text: todo.text,
+        isCompleted: Boolean(todo.isCompleted),
+        date: todo.date,
+      }
+    })
+}
+
 function getFilteredTodos(todos, currentFilter) {
   if (currentFilter === FILTER_TYPES.ACTIVE) {
     return todos.filter((todo) => !todo.isCompleted)
@@ -80,7 +124,7 @@ function getEmptyStateMessage(todos, todosForSelectedDate) {
 }
 
 function App() {
-  const [todos, setTodos] = useState([])
+  const [todos, setTodos] = useState(loadTodos)
   const [todoInput, setTodoInput] = useState('')
   const [message, setMessage] = useState('')
   const [editingTodoId, setEditingTodoId] = useState(null)
@@ -94,6 +138,10 @@ function App() {
   const visibleTodos = getFilteredTodos(todosForSelectedDate, currentFilter)
   const emptyStateMessage = getEmptyStateMessage(todos, todosForSelectedDate)
   const selectedDateLabel = formatReadableDate(selectedDate)
+
+  useEffect(() => {
+    saveTodos(todos)
+  }, [todos])
 
   const handleMoveDate = (offsetDays) => {
     setSelectedDate((currentDate) => addDays(currentDate, offsetDays))
