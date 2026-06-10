@@ -1,3 +1,5 @@
+import { FILTER_OPTIONS } from "../constants/todoConstants";
+
 export default function TodoFilter({ currentFilter, onFilterChange }) {
   return (
     <section className="filter-section" aria-label="상태 필터">
@@ -12,7 +14,7 @@ export default function TodoFilter({ currentFilter, onFilterChange }) {
               className={`filter-tab ${isActive ? "is-active" : ""}`}
               role="tab"
               aria-selected={isActive}
-              onClick={() => setCurrentFilter(filterOption.value)}
+              onClick={() => onFilterChange(filterOption.value)}
             >
               {filterOption.label}
             </button>

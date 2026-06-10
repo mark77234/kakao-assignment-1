@@ -1,4 +1,17 @@
-export default function TodoFilter() {
+import TodoItem from "./TodoItem";
+
+export default function TodoList({
+  visibleTodos,
+  emptyStateMessage,
+  editingTodoId,
+  editingText,
+  onEditingTextChange,
+  onStartEdit,
+  onCancelEdit,
+  onSaveEdit,
+  onToggleTodo,
+  onDeleteTodo,
+}) {
   return (
     <section className="list-section" aria-label="Todo 목록">
       {visibleTodos.length === 0 ? (
@@ -11,12 +24,12 @@ export default function TodoFilter() {
               todo={todo}
               isEditing={editingTodoId === todo.id}
               editingText={editingText}
-              onEditingTextChange={setEditingText}
-              onStartEdit={handleStartEdit}
-              onCancelEdit={handleCancelEdit}
-              onSaveEdit={handleSaveEdit}
-              onToggleTodo={handleToggleTodo}
-              onDeleteTodo={handleDeleteTodo}
+              onEditingTextChange={onEditingTextChange}
+              onStartEdit={onStartEdit}
+              onCancelEdit={onCancelEdit}
+              onSaveEdit={onSaveEdit}
+              onToggleTodo={onToggleTodo}
+              onDeleteTodo={onDeleteTodo}
             />
           ))}
         </ul>
