@@ -1,9 +1,4 @@
-interface AppHeaderProps {
-  selectedDateLabel: string;
-  onMoveDate: (offsetDays: number) => void;
-}
-
-function AppHeader({ selectedDateLabel, onMoveDate }: AppHeaderProps) {
+export default function AppHeader({ selectedDateLabel, onMoveDate }) {
   return (
     <header className="app-header">
       <div>
@@ -35,5 +30,3 @@ function AppHeader({ selectedDateLabel, onMoveDate }: AppHeaderProps) {
     </header>
   );
 }
-
-export default AppHeader;
