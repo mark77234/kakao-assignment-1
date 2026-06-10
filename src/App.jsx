@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import AppHeader from "./components/AppHeader";
+import WeekCalendar from "./components/WeekCalendar";
 
 const TODOS_STORAGE_KEY = "todoApp.todos";
 const SELECTED_DATE_STORAGE_KEY = "todoApp.selectedDate";
@@ -348,120 +349,39 @@ function App() {
         onMoveDate={handleMoveDate}
       />
 
-      <section className="week-section" aria-label="주간 뷰">
-        <div className="week-nav">
-          <button
-            type="button"
-            className="text-button"
-            onClick={() => handleMoveWeek(-1)}
-          >
-            이전 주
-          </button>
-          <button
-            type="button"
-            className="text-button"
-            onClick={() => handleMoveWeek(1)}
-          >
-            다음 주
-          </button>
-        </div>
-        <div className="week-grid">
-          {weekDates.map((dateKey, index) => {
-            const dateObject = parseDateKey(dateKey);
-            const isSelectedDate = selectedDate === dateKey;
-            const isTodayDate = isToday(dateKey);
-            const todoCount = getTodoCountByDate(todos, dateKey);
+      <WeekCalendar
+        weekDates={weekDates}
+        selectedDate={selectedDate}
+        todos={todos}
+        onMoveWeek={handleMoveWeek}
+        selectDate={selectDate}
+      />
 
-            return (
-              <button
-                key={dateKey}
-                type="button"
-                className={`week-day ${isSelectedDate ? "is-selected" : ""} ${
-                  isTodayDate ? "is-today" : ""
-                }`}
-                data-date={dateKey}
-                aria-pressed={isSelectedDate}
-                onClick={() => selectDate(dateKey)}
-              >
-                <span className="week-day-name">{DAY_NAMES[index]}</span>
-                <span className="week-day-date">
-                  {String(dateObject.getMonth() + 1).padStart(2, "0")}/
-                  {String(dateObject.getDate()).padStart(2, "0")}
-                </span>
-                <span className="week-day-count">{todoCount}개</span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
+      <TodoInput
+        todoInput={todoInput}
+        message={message}
+        onTodoInputChange={setTodoInput}
+        onAddTodo={handleAddTodo}
+        onTodoInputKeyDown={handleTodoInputKeyDown}
+      />
 
-      <section className="input-section" aria-label="Todo 추가">
-        <form className="input-row" onSubmit={handleAddTodo}>
-          <label htmlFor="todo-input" className="sr-only">
-            할 일 입력
-          </label>
-          <input
-            id="todo-input"
-            name="todoText"
-            type="text"
-            value={todoInput}
-            placeholder="할 일을 입력하세요"
-            autoComplete="off"
-            onChange={(event) => setTodoInput(event.target.value)}
-            onKeyDown={handleTodoInputKeyDown}
-          />
-          <button type="submit" className="primary-button">
-            추가
-          </button>
-        </form>
-        <p className="input-message" role="alert" aria-live="polite">
-          {message}
-        </p>
-      </section>
+      <TodoFilter
+        currentFilter={currentFilter}
+        onFilterChange={setCurrentFilter}
+      />
 
-      <section className="filter-section" aria-label="상태 필터">
-        <div className="filter-tabs" role="tablist">
-          {FILTER_OPTIONS.map((filterOption) => {
-            const isActive = currentFilter === filterOption.value;
-
-            return (
-              <button
-                key={filterOption.value}
-                type="button"
-                className={`filter-tab ${isActive ? "is-active" : ""}`}
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => setCurrentFilter(filterOption.value)}
-              >
-                {filterOption.label}
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="list-section" aria-label="Todo 목록">
-        {visibleTodos.length === 0 ? (
-          <p className="empty-state">{emptyStateMessage}</p>
-        ) : (
-          <ul className="todo-list">
-            {visibleTodos.map((todo) => (
-              <TodoItem
-                key={todo.id}
-                todo={todo}
-                isEditing={editingTodoId === todo.id}
-                editingText={editingText}
-                onEditingTextChange={setEditingText}
-                onStartEdit={handleStartEdit}
-                onCancelEdit={handleCancelEdit}
-                onSaveEdit={handleSaveEdit}
-                onToggleTodo={handleToggleTodo}
-                onDeleteTodo={handleDeleteTodo}
-              />
-            ))}
-          </ul>
-        )}
-      </section>
+      <TodoList
+        visibleTodos={visibleTodos}
+        emptyStateMessage={emptyStateMessage}
+        editingTodoId={editingTodoId}
+        editingText={editingText}
+        onEditingTextChange={setEditingText}
+        onStartEdit={handleStartEdit}
+        onCancelEdit={handleCancelEdit}
+        onSaveEdit={handleSaveEdit}
+        onToggleTodo={handleToggleTodo}
+        onDeleteTodo={handleDeleteTodo}
+      />
     </main>
   );
 }
