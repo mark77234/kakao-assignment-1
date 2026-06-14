@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-const FRONTEND_API_URL = "http://localhost:3000/api";
+const FRONTEND_API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export type Todo = {
   id: number;
