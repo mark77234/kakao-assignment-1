@@ -3,7 +3,25 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-const FRONTEND_API_URL = "http://localhost:3000/";
+const FRONTEND_API_URL = "http://localhost:3000/api";
+
+export type Todo = {
+  id: number;
+  title: string;
+  completed: boolean;
+};
+
+export async function getTodos(): Promise<Todo[]> {
+  const response = await fetch(`${FRONTEND_API_URL}/todos`, {
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Todo 목록을 불러오지 못했습니다.");
+  }
+
+  return response.json();
+}
 
 export async function createTodo(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
@@ -12,6 +30,7 @@ export async function createTodo(formData: FormData) {
     return;
   }
 
+  // app/api/todos/route.ts 요청이 된다.
   await fetch(`${FRONTEND_API_URL}/todos`, {
     method: "POST",
     headers: {
@@ -45,6 +64,14 @@ export async function updateTodo(todoId: number, formData: FormData) {
 
   revalidatePath("/todos");
   redirect("/todos"); // 수정 후 Todo 목록으로 보내기
+}
+
+export async function deleteTodo(todoId: number) {
+  await fetch(`${FRONTEND_API_URL}/todos/${todoId}`, {
+    method: "DELETE",
+  });
+
+  revalidatePath("/todos");
 }
 
 export async function toggleTodo(
