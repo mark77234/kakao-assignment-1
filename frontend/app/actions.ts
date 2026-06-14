@@ -5,14 +5,18 @@ import { redirect } from "next/navigation";
 
 const FRONTEND_API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+export type TodoFilter = "all" | "active" | "completed";
+
 export type Todo = {
   id: number;
   title: string;
   completed: boolean;
 };
 
-export async function getTodos(): Promise<Todo[]> {
-  const response = await fetch(`${FRONTEND_API_URL}/todos`, {
+export async function getTodos(filter: TodoFilter = "all"): Promise<Todo[]> {
+  const queryString = filter === "all" ? "" : `?filter=${filter}`;
+
+  const response = await fetch(`${FRONTEND_API_URL}/todos${queryString}`, {
     cache: "no-store",
   });
 

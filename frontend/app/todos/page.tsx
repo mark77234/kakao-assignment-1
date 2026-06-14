@@ -1,8 +1,30 @@
 import Link from "next/link";
-import { deleteTodo, getTodos, toggleTodo } from "../actions";
+import { deleteTodo, getTodos, toggleTodo, type TodoFilter } from "../actions";
 
-export default async function TodosPage() {
-  const todos = await getTodos();
+type Props = {
+  searchParams: Promise<{
+    filter?: string;
+  }>;
+};
+
+const filters: { label: string; value: TodoFilter; href: string }[] = [
+  { label: "전체", value: "all", href: "/todos" },
+  { label: "진행 중", value: "active", href: "/todos?filter=active" },
+  { label: "완료", value: "completed", href: "/todos?filter=completed" },
+];
+
+function getTodoFilter(filter?: string): TodoFilter {
+  if (filter === "active" || filter === "completed") {
+    return filter;
+  }
+
+  return "all";
+}
+
+export default async function TodosPage({ searchParams }: Props) {
+  const { filter } = await searchParams;
+  const currentFilter = getTodoFilter(filter);
+  const todos = await getTodos(currentFilter);
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
@@ -16,6 +38,22 @@ export default async function TodosPage() {
           새 Todo
         </Link>
       </header>
+
+      <nav className="flex gap-2" aria-label="Todo 상태 필터">
+        {filters.map((filterItem) => (
+          <Link
+            key={filterItem.value}
+            href={filterItem.href}
+            className={`rounded-md border px-3 py-2 text-sm ${
+              currentFilter === filterItem.value
+                ? "bg-black text-white"
+                : "text-gray-700"
+            }`}
+          >
+            {filterItem.label}
+          </Link>
+        ))}
+      </nav>
 
       {todos.length === 0 ? (
         <p className="text-gray-500">등록된 Todo가 없습니다.</p>
@@ -37,6 +75,7 @@ export default async function TodosPage() {
                 </p>
               </div>
 
+              {/* 수정/삭제/완료 버튼 영역 */}
               <div className="flex gap-2">
                 <form
                   action={toggleTodo.bind(

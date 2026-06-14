@@ -67,8 +67,15 @@ def get_db():
 
 
 @app.get("/todos")
-def get_todos(db: Session = Depends(get_db)):
-    return db.query(Todo).all()
+def get_todos(filter: str | None = None, db: Session = Depends(get_db)):
+    query = db.query(Todo)
+
+    if filter == "active":
+        query = query.filter(Todo.completed == False)
+    elif filter == "completed":
+        query = query.filter(Todo.completed == True)
+
+    return query.all()
 
 
 @app.post("/todos")

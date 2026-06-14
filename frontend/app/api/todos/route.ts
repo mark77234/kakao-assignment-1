@@ -1,7 +1,9 @@
 const BACKEND_API_URL = process.env.BACKEND_API_URL;
 
-export async function GET() {
-  const response = await fetch(`${BACKEND_API_URL}/todos`, {
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+
+  const response = await fetch(`${BACKEND_API_URL}/todos${url.search}`, {
     cache: "no-store", // 캐시 설정 안함(매번 데이터가 바뀜)
   });
   const data = await response.json();
