@@ -1,1 +1,7 @@
 /kakao-assignment-2
+
+*.db
+backend/*.db
+
+*.db
+backend/*.db
