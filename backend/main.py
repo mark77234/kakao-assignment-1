@@ -67,7 +67,9 @@ def get_db():
 
 
 @app.get("/todos")
-def get_todos(filter: str | None = None, db: Session = Depends(get_db)):
+def get_todos(
+    filter: str | None = None, search: str | None = None, db: Session = Depends(get_db)
+):
     query = db.query(Todo)
 
     if filter == "active":
@@ -75,6 +77,8 @@ def get_todos(filter: str | None = None, db: Session = Depends(get_db)):
     elif filter == "completed":
         query = query.filter(Todo.completed == True)
 
+    if search:
+        query = query.filter(Todo.title.contains(search))
     return query.all()
 
 

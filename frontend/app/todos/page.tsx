@@ -4,6 +4,7 @@ import { deleteTodo, getTodos, toggleTodo, type TodoFilter } from "../actions";
 type Props = {
   searchParams: Promise<{
     filter?: string;
+    search?: string;
   }>;
 };
 
@@ -21,10 +22,30 @@ function getTodoFilter(filter?: string): TodoFilter {
   return "all";
 }
 
+function getTodosHref(filter: TodoFilter, search: string) {
+  const params = new URLSearchParams();
+
+  if (filter !== "all") {
+    params.set("filter", filter);
+  }
+
+  if (search.trim()) {
+    params.set("search", search.trim());
+  }
+
+  const queryString = params.toString();
+
+  return queryString ? `/todos?${queryString}` : "/todos";
+}
+
 export default async function TodosPage({ searchParams }: Props) {
-  const { filter } = await searchParams;
+  const { filter, search } = await searchParams;
   const currentFilter = getTodoFilter(filter);
-  const todos = await getTodos(currentFilter);
+  const currentSearch = search ?? "";
+  const todos = await getTodos({
+    filter: currentFilter,
+    search: currentSearch,
+  });
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
@@ -39,11 +60,41 @@ export default async function TodosPage({ searchParams }: Props) {
         </Link>
       </header>
 
+      <form action="/todos" className="flex gap-2">
+        <input
+          name="search"
+          type="search"
+          defaultValue={currentSearch}
+          placeholder="Todo 검색"
+          className="flex-1 rounded-md border px-3 py-2"
+        />
+
+        {currentFilter !== "all" ? (
+          <input type="hidden" name="filter" value={currentFilter} />
+        ) : null}
+
+        <button
+          type="submit"
+          className="rounded-md bg-black px-4 py-2 text-white"
+        >
+          검색
+        </button>
+
+        {currentSearch ? (
+          <Link
+            href={getTodosHref(currentFilter, "")}
+            className="rounded-md border px-4 py-2 text-sm"
+          >
+            초기화
+          </Link>
+        ) : null}
+      </form>
+
       <nav className="flex gap-2" aria-label="Todo 상태 필터">
         {filters.map((filterItem) => (
           <Link
             key={filterItem.value}
-            href={filterItem.href}
+            href={getTodosHref(filterItem.value, currentSearch)}
             className={`rounded-md border px-3 py-2 text-sm ${
               currentFilter === filterItem.value
                 ? "bg-black text-white"
